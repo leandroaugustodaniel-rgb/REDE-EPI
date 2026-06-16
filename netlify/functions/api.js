@@ -34,6 +34,7 @@ exports.handler = async (event) => {
     if (resource === "employees") return employees(method, id, event);
     if (resource === "feedbacks") return feedbacks(method, id, event, user);
     if (resource === "disc-profiles") return discProfiles(method, id, event);
+    if (["departments", "roles", "units"].includes(resource)) return registry(method, resource, id, event);
 
     return json({ error: "Rota nao encontrada" }, 404);
   } catch (error) {
@@ -297,6 +298,40 @@ async function discProfiles(method, id, event) {
     await one(client().from("disc_profiles").delete().eq("id", id));
     return json({ ok: true });
   }
+  return json({ error: "Metodo invalido" }, 405);
+}
+
+async function registry(method, resource, id, event) {
+  const config = {
+    departments: { table: "departments", fields: ["name"], employeeField: "department_id" },
+    roles: { table: "roles", fields: ["name"], employeeField: "role_id" },
+    units: { table: "units", fields: ["name", "city"], employeeField: "unit_id" },
+  }[resource];
+
+  if (method === "GET") {
+    return json({ items: await all(client().from(config.table).select("*").order("name")) });
+  }
+
+  if (method === "POST" || method === "PUT") {
+    const body = payload(event);
+    const data = Object.fromEntries(config.fields.map((field) => [field, emptyToNull(body[field])]));
+    const query = method === "POST"
+      ? client().from(config.table).insert(data).select("*").single()
+      : client().from(config.table).update(data).eq("id", id).select("*").single();
+    return json(await one(query), method === "POST" ? 201 : 200);
+  }
+
+  if (method === "DELETE" && id) {
+    const { count, error } = await client()
+      .from("employees")
+      .select("id", { count: "exact", head: true })
+      .eq(config.employeeField, id);
+    if (error) throw error;
+    if (count > 0) return json({ error: "Cadastro em uso por colaboradores." }, 400);
+    await one(client().from(config.table).delete().eq("id", id));
+    return json({ ok: true });
+  }
+
   return json({ error: "Metodo invalido" }, 405);
 }
 

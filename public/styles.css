@@ -115,6 +115,14 @@ button {
   width: 118px;
   height: 38px;
   flex: 0 0 auto;
+  filter: none;
+}
+
+.card-logo {
+  width: 156px;
+  height: 44px;
+  margin-bottom: 18px;
+  filter: none;
 }
 
 .login-visual h1 {

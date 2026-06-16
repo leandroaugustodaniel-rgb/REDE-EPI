@@ -136,9 +136,38 @@ def init_db():
                 ("Admin EPI", "admin@epi.com", hash_password("admin123")),
             )
 
-        seed_table(conn, "departments", ["Comercial", "Operacoes", "Logistica", "Financeiro", "RH"])
-        seed_table(conn, "roles", ["Analista", "Consultor de Vendas", "Lider", "Coordenador", "Auxiliar"])
+        seed_table(conn, "departments", ["Comercial", "Compras", "Logistica"])
+        seed_table(
+            conn,
+            "roles",
+            [
+                "Gerente de Operacoes",
+                "Supervisor Comercial",
+                "Vendedor 1C",
+                "Vendedor 2A",
+                "Vendedor 2B",
+                "Vendedor 2C",
+                "Vendedor 3A",
+                "Vendedor 3B",
+                "Vendedor 3C",
+                "Assistente Administrativo",
+                "Supervisor de Compras",
+                "Analista de Compras Junior",
+                "Analista de Compras Pleno",
+                "Analista de Compras Senior",
+                "Coordenador do Estoque",
+                "Encarregado do Estoque",
+                "Analista da Logistica",
+                "Auxiliar de Estoque Junior",
+                "Auxiliar de Estoque Pleno",
+                "Auxiliar de Estoque Senior",
+                "Motorista Junior",
+                "Motorista Pleno",
+                "Motorista Senior",
+            ],
+        )
         seed_units(conn)
+        seed_leaders(conn)
         seed_people(conn)
 
 
@@ -148,21 +177,72 @@ def seed_table(conn, table, names):
 
 
 def seed_units(conn):
-    for name, city in [("Matriz", "Sao Paulo"), ("CD Sul", "Curitiba"), ("Filial Nordeste", "Recife")]:
+    for name, city in [("REDE - GO", "Goiania"), ("REDE - DF", "Brasilia"), ("REDE - MT", "Cuiaba"), ("REDE - LABOR", "Laboratorio")]:
         conn.execute("INSERT OR IGNORE INTO units (name, city) VALUES (?, ?)", (name, city))
 
 
+def lookup_id(conn, table, name):
+    row = conn.execute(f"SELECT id FROM {table} WHERE name = ?", (name,)).fetchone()
+    return row["id"] if row else None
+
+
+def seed_leaders(conn):
+    commercial = lookup_id(conn, "departments", "Comercial")
+    compras = lookup_id(conn, "departments", "Compras")
+    logistica = lookup_id(conn, "departments", "Logistica")
+    rede_go = lookup_id(conn, "units", "REDE - GO")
+
+    leaders = [
+        ("Leandro Daniel", "leandro.daniel@redeepi.com", commercial, "Gerente de Operacoes"),
+        ("Gabriela Andrade", "gabriela.andrade@redeepi.com", commercial, "Supervisor Comercial"),
+        ("Cleber Rubeo", "cleber.rubeo@redeepi.com", commercial, "Supervisor Comercial"),
+        ("Tercio Baldino", "tercio.baldino@redeepi.com", logistica, "Coordenador do Estoque"),
+        ("Paulo Carvalho", "paulo.carvalho@redeepi.com", logistica, "Coordenador do Estoque"),
+        ("Priscill Jordao", "priscill.jordao@redeepi.com", compras, "Supervisor de Compras"),
+    ]
+
+    for name, email, department_id, role_name in leaders:
+        role_id = lookup_id(conn, "roles", role_name)
+        conn.execute(
+            """
+            INSERT INTO employees
+            (name, email, status, department_id, role_id, unit_id, notes)
+            VALUES (?, ?, 'Ativo', ?, ?, ?, 'Lideranca REDE EPI')
+            ON CONFLICT(email) DO UPDATE SET
+              name = excluded.name,
+              department_id = excluded.department_id,
+              role_id = excluded.role_id,
+              unit_id = excluded.unit_id
+            """,
+            (name, email, department_id, role_id, rede_go),
+        )
+
+
 def seed_people(conn):
-    if conn.execute("SELECT COUNT(*) FROM employees").fetchone()[0] > 0:
+    if conn.execute("SELECT COUNT(*) FROM employees WHERE email = ?", ("caio.mendes@empresaepi.com",)).fetchone()[0] > 0:
         return
 
     ids = {}
+    comercial = lookup_id(conn, "departments", "Comercial")
+    compras = lookup_id(conn, "departments", "Compras")
+    logistica = lookup_id(conn, "departments", "Logistica")
+    rede_go = lookup_id(conn, "units", "REDE - GO")
+    rede_df = lookup_id(conn, "units", "REDE - DF")
+    gerente_operacoes = lookup_id(conn, "roles", "Gerente de Operacoes")
+    supervisor_comercial = lookup_id(conn, "roles", "Supervisor Comercial")
+    vendedor = lookup_id(conn, "roles", "Vendedor 2A")
+    compras_role = lookup_id(conn, "roles", "Analista de Compras Pleno")
+    estoque_role = lookup_id(conn, "roles", "Auxiliar de Estoque Pleno")
+    lider_comercial = conn.execute("SELECT id FROM employees WHERE email = ?", ("gabriela.andrade@redeepi.com",)).fetchone()
+    lider_compras = conn.execute("SELECT id FROM employees WHERE email = ?", ("priscill.jordao@redeepi.com",)).fetchone()
+    lider_estoque = conn.execute("SELECT id FROM employees WHERE email = ?", ("tercio.baldino@redeepi.com",)).fetchone()
+
     people = [
-        ("Marina Alves", "marina.alves@empresaepi.com", "2021-03-08", 5, 4, 1, None, "Diretora de RH"),
-        ("Rafael Lima", "rafael.lima@empresaepi.com", "2020-07-12", 1, 3, 1, 1, "Lider Comercial"),
-        ("Bianca Torres", "bianca.torres@empresaepi.com", "2022-01-17", 2, 3, 2, 1, "Lider de Operacoes"),
-        ("Caio Mendes", "caio.mendes@empresaepi.com", "2023-04-03", 1, 2, 1, 2, "Vendas B2B"),
-        ("Fernanda Rocha", "fernanda.rocha@empresaepi.com", "2023-09-21", 3, 1, 2, 3, "Controle de estoque"),
+        ("Marina Alves", "marina.alves@empresaepi.com", "2021-03-08", comercial, gerente_operacoes, rede_go, None, "Gestao operacional"),
+        ("Rafael Lima", "rafael.lima@empresaepi.com", "2020-07-12", comercial, supervisor_comercial, rede_go, None, "Lider Comercial"),
+        ("Bianca Torres", "bianca.torres@empresaepi.com", "2022-01-17", compras, compras_role, rede_df, lider_compras["id"] if lider_compras else None, "Compras"),
+        ("Caio Mendes", "caio.mendes@empresaepi.com", "2023-04-03", comercial, vendedor, rede_go, lider_comercial["id"] if lider_comercial else None, "Vendas B2B"),
+        ("Fernanda Rocha", "fernanda.rocha@empresaepi.com", "2023-09-21", logistica, estoque_role, rede_df, lider_estoque["id"] if lider_estoque else None, "Controle de estoque"),
     ]
     for person in people:
         cur = conn.execute(
@@ -272,6 +352,8 @@ class Handler(SimpleHTTPRequestHandler):
                     return self.handle_feedbacks(method, item_id, parsed)
                 if resource == "disc-profiles":
                     return self.handle_disc(method, item_id, parsed)
+                if resource in ("departments", "roles", "units"):
+                    return self.handle_registry(method, resource, item_id)
 
             return self.json_response({"error": "Rota nao encontrada"}, 404)
         except sqlite3.IntegrityError as exc:
@@ -382,6 +464,44 @@ class Handler(SimpleHTTPRequestHandler):
             with db() as conn:
                 conn.execute("DELETE FROM disc_profiles WHERE id = ?", (item_id,))
             return self.json_response({"ok": True})
+        return self.json_response({"error": "Metodo invalido"}, 405)
+
+    def handle_registry(self, method, resource, item_id):
+        table_map = {
+            "departments": ("departments", ["name"], "department_id"),
+            "roles": ("roles", ["name"], "role_id"),
+            "units": ("units", ["name", "city"], "unit_id"),
+        }
+        table, fields, employee_field = table_map[resource]
+
+        if method == "GET":
+            with db() as conn:
+                rows = conn.execute(f"SELECT * FROM {table} ORDER BY name").fetchall()
+            return self.json_response({"items": [dict(row) for row in rows]})
+
+        data = self.payload()
+        values = [normalize_value(data.get(field)) for field in fields]
+
+        if method == "POST":
+            placeholders = ", ".join(["?"] * len(fields))
+            with db() as conn:
+                cur = conn.execute(f"INSERT INTO {table} ({', '.join(fields)}) VALUES ({placeholders})", values)
+            return self.json_response(row_to_dict_by_id(table, cur.lastrowid), 201)
+
+        if method == "PUT" and item_id:
+            assignments = ", ".join([f"{field} = ?" for field in fields])
+            with db() as conn:
+                conn.execute(f"UPDATE {table} SET {assignments} WHERE id = ?", values + [item_id])
+            return self.json_response(row_to_dict_by_id(table, item_id))
+
+        if method == "DELETE" and item_id:
+            with db() as conn:
+                in_use = conn.execute(f"SELECT COUNT(*) FROM employees WHERE {employee_field} = ?", (item_id,)).fetchone()[0]
+                if in_use:
+                    return self.json_response({"error": "Cadastro em uso por colaboradores."}, 400)
+                conn.execute(f"DELETE FROM {table} WHERE id = ?", (item_id,))
+            return self.json_response({"ok": True})
+
         return self.json_response({"error": "Metodo invalido"}, 405)
 
 

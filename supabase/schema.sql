@@ -91,25 +91,81 @@ values (
 on conflict (email) do nothing;
 
 insert into public.departments (name)
-values ('Comercial'), ('Operacoes'), ('Logistica'), ('Financeiro'), ('RH')
+values ('Comercial'), ('Compras'), ('Logistica')
 on conflict (name) do nothing;
 
 insert into public.roles (name)
-values ('Analista'), ('Consultor de Vendas'), ('Lider'), ('Coordenador'), ('Auxiliar')
+values
+  ('Gerente de Operacoes'),
+  ('Supervisor Comercial'),
+  ('Vendedor 1C'),
+  ('Vendedor 2A'),
+  ('Vendedor 2B'),
+  ('Vendedor 2C'),
+  ('Vendedor 3A'),
+  ('Vendedor 3B'),
+  ('Vendedor 3C'),
+  ('Assistente Administrativo'),
+  ('Supervisor de Compras'),
+  ('Analista de Compras Junior'),
+  ('Analista de Compras Pleno'),
+  ('Analista de Compras Senior'),
+  ('Coordenador do Estoque'),
+  ('Encarregado do Estoque'),
+  ('Analista da Logistica'),
+  ('Auxiliar de Estoque Junior'),
+  ('Auxiliar de Estoque Pleno'),
+  ('Auxiliar de Estoque Senior'),
+  ('Motorista Junior'),
+  ('Motorista Pleno'),
+  ('Motorista Senior')
 on conflict (name) do nothing;
 
 insert into public.units (name, city)
-values ('Matriz', 'Sao Paulo'), ('CD Sul', 'Curitiba'), ('Filial Nordeste', 'Recife')
+values
+  ('REDE - GO', 'Goiania'),
+  ('REDE - DF', 'Brasilia'),
+  ('REDE - MT', 'Cuiaba'),
+  ('REDE - LABOR', 'Laboratorio')
 on conflict (name) do nothing;
 
 insert into public.employees
   (name, email, admission_date, department_id, role_id, unit_id, leader_id, notes)
-values
-  ('Marina Alves', 'marina.alves@empresaepi.com', '2021-03-08', 5, 4, 1, null, 'Diretora de RH'),
-  ('Rafael Lima', 'rafael.lima@empresaepi.com', '2020-07-12', 1, 3, 1, 1, 'Lider Comercial'),
-  ('Bianca Torres', 'bianca.torres@empresaepi.com', '2022-01-17', 2, 3, 2, 1, 'Lider de Operacoes'),
-  ('Caio Mendes', 'caio.mendes@empresaepi.com', '2023-04-03', 1, 2, 1, 2, 'Vendas B2B'),
-  ('Fernanda Rocha', 'fernanda.rocha@empresaepi.com', '2023-09-21', 3, 1, 2, 3, 'Controle de estoque')
+select x.name, x.email, null::date, d.id, r.id, u.id, null, 'Lideranca REDE EPI'
+from (
+  values
+    ('Leandro Daniel', 'leandro.daniel@redeepi.com', 'Comercial', 'Gerente de Operacoes', 'REDE - GO'),
+    ('Gabriela Andrade', 'gabriela.andrade@redeepi.com', 'Comercial', 'Supervisor Comercial', 'REDE - GO'),
+    ('Cleber Rubeo', 'cleber.rubeo@redeepi.com', 'Comercial', 'Supervisor Comercial', 'REDE - GO'),
+    ('Tercio Baldino', 'tercio.baldino@redeepi.com', 'Logistica', 'Coordenador do Estoque', 'REDE - GO'),
+    ('Paulo Carvalho', 'paulo.carvalho@redeepi.com', 'Logistica', 'Coordenador do Estoque', 'REDE - GO'),
+    ('Priscill Jordao', 'priscill.jordao@redeepi.com', 'Compras', 'Supervisor de Compras', 'REDE - GO')
+) as x(name, email, department, role, unit)
+join public.departments d on d.name = x.department
+join public.roles r on r.name = x.role
+join public.units u on u.name = x.unit
+on conflict (email) do update set
+  name = excluded.name,
+  department_id = excluded.department_id,
+  role_id = excluded.role_id,
+  unit_id = excluded.unit_id,
+  notes = excluded.notes;
+
+insert into public.employees
+  (name, email, admission_date, department_id, role_id, unit_id, leader_id, notes)
+select x.name, x.email, x.admission_date::date, d.id, r.id, u.id, l.id, x.notes
+from (
+  values
+    ('Marina Alves', 'marina.alves@empresaepi.com', '2021-03-08', 'Comercial', 'Gerente de Operacoes', 'REDE - GO', null, 'Gestao operacional'),
+    ('Rafael Lima', 'rafael.lima@empresaepi.com', '2020-07-12', 'Comercial', 'Supervisor Comercial', 'REDE - GO', null, 'Lider Comercial'),
+    ('Bianca Torres', 'bianca.torres@empresaepi.com', '2022-01-17', 'Compras', 'Analista de Compras Pleno', 'REDE - DF', 'priscill.jordao@redeepi.com', 'Compras'),
+    ('Caio Mendes', 'caio.mendes@empresaepi.com', '2023-04-03', 'Comercial', 'Vendedor 2A', 'REDE - GO', 'gabriela.andrade@redeepi.com', 'Vendas B2B'),
+    ('Fernanda Rocha', 'fernanda.rocha@empresaepi.com', '2023-09-21', 'Logistica', 'Auxiliar de Estoque Pleno', 'REDE - DF', 'tercio.baldino@redeepi.com', 'Controle de estoque')
+) as x(name, email, admission_date, department, role, unit, leader_email, notes)
+join public.departments d on d.name = x.department
+join public.roles r on r.name = x.role
+join public.units u on u.name = x.unit
+left join public.employees l on l.email = x.leader_email
 on conflict (email) do nothing;
 
 insert into public.disc_profiles
