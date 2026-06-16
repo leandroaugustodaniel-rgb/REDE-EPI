@@ -475,11 +475,52 @@ tr:last-child td {
   padding: 12px;
   border-radius: 8px;
   background: #f3f6f3;
+  color: var(--ink);
 }
 
 .disc-box strong {
   display: block;
   font-size: 1.35rem;
+}
+
+.disc-d {
+  background: #c9261f;
+  color: #fff;
+}
+
+.disc-grid .disc-box:nth-child(1) {
+  background: #c9261f;
+  color: #fff;
+}
+
+.disc-i {
+  background: #ffbf2f;
+  color: #17212d;
+}
+
+.disc-grid .disc-box:nth-child(2) {
+  background: #ffbf2f;
+  color: #17212d;
+}
+
+.disc-s {
+  background: #1f8f4d;
+  color: #fff;
+}
+
+.disc-grid .disc-box:nth-child(3) {
+  background: #1f8f4d;
+  color: #fff;
+}
+
+.disc-c {
+  background: #1667b7;
+  color: #fff;
+}
+
+.disc-grid .disc-box:nth-child(4) {
+  background: #1667b7;
+  color: #fff;
 }
 
 .org-tree {
