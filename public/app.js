@@ -63,6 +63,37 @@ const PEOPLE_CONFIG = {
   },
 };
 
+const DISC_FEEDBACK_GUIDE = {
+  D: {
+    name: "Dominancia",
+    method: "SBI",
+    fear: "Falhar",
+    motivation: "Poder, desafio e resultado",
+    communication: "Seja direto, use fatos claros, impacto no resultado e combine decisao rapida.",
+  },
+  I: {
+    name: "Influencia",
+    method: "FEED",
+    fear: "Rejeicao",
+    motivation: "Reconhecimento e pertencimento",
+    communication: "Reconheca antes de ajustar, abra dialogo e transforme combinados em prioridades e prazos.",
+  },
+  S: {
+    name: "Estabilidade",
+    method: "SBI",
+    fear: "Mudancas",
+    motivation: "Seguranca e constancia",
+    communication: "Explique o contexto, evite pressa excessiva, de tempo para adaptacao e acompanhe de perto.",
+  },
+  C: {
+    name: "Conformidade",
+    method: "SBI",
+    fear: "Conflitos e perda de precisao",
+    motivation: "Regras, qualidade e procedimentos",
+    communication: "Use dados, evidencias e criterios objetivos. Evite improviso e deixe expectativas claras.",
+  },
+};
+
 const api = async (path, options = {}) => {
   const response = await fetch(path, {
     credentials: "include",
@@ -319,15 +350,45 @@ function renderRegistries() {
 
 function renderFeedbacks() {
   workspace().innerHTML = `
-    ${pageHead("Feedbacks", "Registros positivos, corretivos e de desenvolvimento.", `<button class="btn" onclick="openFeedbackModal()">Novo feedback</button>`)}
+    ${pageHead("Feedbacks e DISC", "Feedback estruturado com metodo SBI/FEED e leitura comportamental DISC.", `<button class="btn" onclick="openFeedbackModal()">Novo feedback</button>`)}
+    <section class="grid feedback-layout">
+      <div class="panel">
+        <h2>Modelo de conversa</h2>
+        <div class="feedback-methods">
+          <div>
+            <strong>SBI</strong>
+            <p><b>Situacao</b>, <b>Comportamento</b> e <b>Impacto</b>. Melhor para fatos claros, performance e combinados objetivos.</p>
+          </div>
+          <div>
+            <strong>FEED</strong>
+            <p><b>Fatos</b>, <b>Emocoes</b>, <b>Expectativas</b> e <b>Direcionamento</b>. Melhor para abrir dialogo e desenvolvimento.</p>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>DISC na conversa</h2>
+        <div class="disc-advice-grid">
+          ${Object.entries(DISC_FEEDBACK_GUIDE).map(([key, guide]) => `
+            <div class="disc-advice disc-${key.toLowerCase()}">
+              <strong>${key}</strong>
+              <span>${escapeHtml(guide.method)}</span>
+              <p>${escapeHtml(guide.communication)}</p>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </section>
     <section class="cards">
       ${state.feedbacks.map((item) => `
-        <article class="item-card">
+        <article class="item-card feedback-card">
+          ${feedbackCardBody(item)}
+          <div class="legacy-feedback-hidden">
           <span class="${badgeClass(item.type)}">${escapeHtml(item.type)}</span>
           <h3>${escapeHtml(item.title)}</h3>
           <p class="meta">${escapeHtml(item.employee)} • ${formatDate(item.feedback_date)}</p>
           <p>${escapeHtml(item.description)}</p>
           ${item.action_plan ? `<p><strong>Plano:</strong> ${escapeHtml(item.action_plan)}</p>` : ""}
+          </div>
           <div class="toolbar">
             <button class="btn secondary" onclick="openFeedbackModal(${item.id})">Editar</button>
             <button class="btn danger" onclick="deleteFeedback(${item.id})">Excluir</button>
@@ -481,7 +542,112 @@ function feedbackList(items) {
 }
 
 function discBox(label, value) {
-  return `<div class="disc-box"><span>${label}</span><strong>${value}</strong></div>`;
+  return `<div class="disc-box disc-${label.toLowerCase()}"><span>${label}</span><strong>${value}</strong></div>`;
+}
+
+function feedbackCardBody(item) {
+  const details = parseFeedbackDetails(item);
+  const disc = discForEmployee(item.employee_id);
+  const discKey = primaryDiscKey(disc?.primary_profile);
+  const guide = DISC_FEEDBACK_GUIDE[discKey];
+  return `
+    <div class="feedback-card-head">
+      <span class="${badgeClass(item.type)}">${escapeHtml(item.type)}</span>
+      ${details.method ? `<span class="badge">${escapeHtml(details.method)}</span>` : ""}
+      ${disc ? `<span class="badge disc-chip disc-${discKey.toLowerCase()}">DISC ${escapeHtml(disc.primary_profile)}</span>` : ""}
+    </div>
+    <h3>${escapeHtml(item.title)}</h3>
+    <p class="meta">${escapeHtml(item.employee || "")} ${item.feedback_date ? " - " + formatDate(item.feedback_date) : ""}</p>
+    ${disc ? feedbackDiscSummary(disc, guide) : `<p class="muted">Sem DISC vinculado a este colaborador.</p>`}
+    <div class="feedback-structure">
+      ${feedbackField("Situacao/Fatos", details.situation)}
+      ${feedbackField("Comportamento", details.behavior)}
+      ${feedbackField("Impacto", details.impact)}
+      ${feedbackField("Emocoes/Dialogo", details.emotion)}
+      ${feedbackField("Expectativa", details.expectation)}
+      ${feedbackField("Acao combinada", details.action)}
+      ${feedbackField("Proximo passo", details.nextStep)}
+      ${feedbackField("Acompanhamento", details.followUp)}
+    </div>
+  `;
+}
+
+function feedbackField(label, value) {
+  return value ? `<div class="feedback-field"><span>${label}</span><p>${escapeHtml(value)}</p></div>` : "";
+}
+
+function feedbackDiscSummary(disc, guide) {
+  return `
+    <div class="feedback-disc-summary">
+      <div class="disc-grid compact">
+        ${discBox("D", disc.dominance)}
+        ${discBox("I", disc.influence)}
+        ${discBox("S", disc.stability)}
+        ${discBox("C", disc.compliance)}
+      </div>
+      ${guide ? `<p><strong>Como conduzir:</strong> ${escapeHtml(guide.communication)}</p>` : ""}
+    </div>
+  `;
+}
+
+function feedbackDiscPreview(employeeId) {
+  const disc = discForEmployee(employeeId);
+  if (!disc) {
+    return `<p class="muted">Este colaborador ainda nao tem DISC cadastrado. Cadastre o perfil para receber a orientacao comportamental no feedback.</p>`;
+  }
+  const discKey = primaryDiscKey(disc.primary_profile);
+  const guide = DISC_FEEDBACK_GUIDE[discKey];
+  return `
+    <div class="feedback-preview-head">
+      <strong>Leitura DISC para a conversa</strong>
+      <span class="badge disc-chip disc-${discKey.toLowerCase()}">Perfil ${escapeHtml(disc.primary_profile)}</span>
+    </div>
+    <div class="disc-grid compact">
+      ${discBox("D", disc.dominance)}
+      ${discBox("I", disc.influence)}
+      ${discBox("S", disc.stability)}
+      ${discBox("C", disc.compliance)}
+    </div>
+    ${guide ? `
+      <div class="feedback-guide-lines">
+        <p><span>Metodo sugerido</span>${escapeHtml(guide.method)}</p>
+        <p><span>Motivador</span>${escapeHtml(guide.motivation)}</p>
+        <p><span>Ponto sensivel</span>${escapeHtml(guide.fear)}</p>
+        <p><span>Conducao</span>${escapeHtml(guide.communication)}</p>
+      </div>
+    ` : ""}
+  `;
+}
+
+function discForEmployee(employeeId) {
+  return state.discProfiles.find((disc) => Number(disc.employee_id) === Number(employeeId));
+}
+
+function primaryDiscKey(profile = "") {
+  const clean = normalizeText(profile).toUpperCase();
+  return ["D", "I", "S", "C"].find((key) => clean.includes(key)) || "D";
+}
+
+function parseFeedbackDetails(item = {}) {
+  const description = item.description || "";
+  const actionPlan = item.action_plan || "";
+  return {
+    method: readMarker(description, "Metodo") || "",
+    situation: readMarker(description, "Situacao/Fatos") || readMarker(description, "Fatos") || (!description.includes(":") ? description : ""),
+    behavior: readMarker(description, "Comportamento observado") || "",
+    impact: readMarker(description, "Impacto") || "",
+    emotion: readMarker(description, "Emocoes/Dialogo") || "",
+    expectation: readMarker(description, "Expectativa") || "",
+    action: readMarker(actionPlan, "Acao combinada") || (!actionPlan.includes(":") ? actionPlan : ""),
+    nextStep: readMarker(actionPlan, "Proximo passo") || "",
+    followUp: readMarker(actionPlan, "Acompanhamento") || "",
+  };
+}
+
+function readMarker(text = "", label) {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`${escaped}:\\s*([\\s\\S]*?)(?=\\n[A-Za-z0-9 /]+:|$)`, "i");
+  return (text.match(pattern)?.[1] || "").trim();
 }
 
 function employeeSelector() {
@@ -610,21 +776,85 @@ async function saveRegistry(event, resource, id) {
 
 function openFeedbackModal(id) {
   const item = state.feedbacks.find((feedback) => feedback.id === id) || {};
+  const details = parseFeedbackDetails(item);
+  const employeeId = item.employee_id || state.employees[0]?.id || "";
+  const employeeDisc = discForEmployee(employeeId);
+  const suggestedMethod = primaryDiscKey(employeeDisc?.primary_profile) === "I" ? "FEED" : "SBI";
+  const method = details.method || suggestedMethod;
   modal(`
-    <form id="feedbackForm" class="modal-card">
+    <form id="feedbackForm" class="modal-card feedback-modal">
       <h3>${id ? "Editar feedback" : "Novo feedback"}</h3>
       <div class="form-grid">
-        <label>Colaborador<select name="employee_id" required>${optionList(state.employees, item.employee_id)}</select></label>
+        <label>Colaborador<select id="feedbackEmployee" name="employee_id" required>${optionList(state.employees, employeeId)}</select></label>
         <label>Tipo<select name="type"><option ${item.type === "Positivo" ? "selected" : ""}>Positivo</option><option ${item.type === "Corretivo" ? "selected" : ""}>Corretivo</option><option ${item.type === "Desenvolvimento" ? "selected" : ""}>Desenvolvimento</option></select></label>
+        <label>Metodo<select id="feedbackMethod" name="method"><option ${method === "SBI" ? "selected" : ""}>SBI</option><option ${method === "FEED" ? "selected" : ""}>FEED</option></select></label>
         <label>Titulo<input name="title" value="${escapeHtml(item.title || "")}" required /></label>
         <label>Data<input name="feedback_date" type="date" value="${escapeHtml(item.feedback_date || new Date().toISOString().slice(0, 10))}" required /></label>
-        <label class="span-2">Descricao<textarea name="description" required>${escapeHtml(item.description || "")}</textarea></label>
-        <label class="span-2">Plano de acao<textarea name="action_plan">${escapeHtml(item.action_plan || "")}</textarea></label>
+        <div class="feedback-preview span-2" id="feedbackDiscPreview">${feedbackDiscPreview(employeeId)}</div>
+        <label class="span-2">Situacao ou fatos<textarea name="situation" required placeholder="Onde, quando e em qual contexto aconteceu?">${escapeHtml(details.situation)}</textarea></label>
+        <label class="span-2">Comportamento observado<textarea name="behavior" required placeholder="O que a pessoa fez ou deixou de fazer, sem julgamento?">${escapeHtml(details.behavior)}</textarea></label>
+        <label class="span-2">Impacto<textarea name="impact" required placeholder="Qual foi o impacto no cliente, equipe, resultado, seguranca ou rotina?">${escapeHtml(details.impact)}</textarea></label>
+        <label>Emocoes ou dialogo<textarea name="emotion" placeholder="Como a pessoa percebeu a situacao?">${escapeHtml(details.emotion)}</textarea></label>
+        <label>Expectativa<textarea name="expectation" placeholder="Qual comportamento esperado daqui para frente?">${escapeHtml(details.expectation)}</textarea></label>
+        <label class="span-2">Acao combinada<textarea name="action" required placeholder="Qual acao pratica foi combinada?">${escapeHtml(details.action)}</textarea></label>
+        <label>Proximo passo<textarea name="next_step" placeholder="Qual sera o proximo ponto de acompanhamento?">${escapeHtml(details.nextStep)}</textarea></label>
+        <label>Acompanhamento<input name="follow_up" type="date" value="${escapeHtml(details.followUp)}" /></label>
       </div>
       ${modalActions()}
     </form>
   `);
-  document.querySelector("#feedbackForm").addEventListener("submit", (event) => saveForm(event, `/api/feedbacks${id ? `/${id}` : ""}`, id ? "PUT" : "POST"));
+  document.querySelector("#feedbackForm").addEventListener("submit", (event) => saveStructuredFeedback(event, id));
+  document.querySelector("#feedbackEmployee")?.addEventListener("change", (event) => {
+    document.querySelector("#feedbackDiscPreview").innerHTML = feedbackDiscPreview(event.target.value);
+  });
+}
+
+async function saveStructuredFeedback(event, id) {
+  event.preventDefault();
+  const data = Object.fromEntries(new FormData(event.currentTarget));
+  const employee = state.employees.find((item) => Number(item.id) === Number(data.employee_id));
+  const disc = discForEmployee(data.employee_id);
+  const description = [
+    ["Metodo", data.method],
+    ["Perfil DISC", disc?.primary_profile || ""],
+    ["Situacao/Fatos", data.situation],
+    ["Comportamento observado", data.behavior],
+    ["Impacto", data.impact],
+    ["Emocoes/Dialogo", data.emotion],
+    ["Expectativa", data.expectation],
+  ]
+    .filter(([, value]) => String(value || "").trim())
+    .map(([label, value]) => `${label}: ${String(value).trim()}`)
+    .join("\n");
+  const actionPlan = [
+    ["Acao combinada", data.action],
+    ["Proximo passo", data.next_step],
+    ["Acompanhamento", data.follow_up],
+  ]
+    .filter(([, value]) => String(value || "").trim())
+    .map(([label, value]) => `${label}: ${String(value).trim()}`)
+    .join("\n");
+  const payload = {
+    employee_id: data.employee_id,
+    employee: employee?.name || "",
+    type: data.type,
+    title: data.title,
+    feedback_date: data.feedback_date,
+    description,
+    action_plan: actionPlan,
+  };
+  try {
+    await api(`/api/feedbacks${id ? `/${id}` : ""}`, {
+      method: id ? "PUT" : "POST",
+      body: JSON.stringify(payload),
+    });
+    closeModal();
+    await loadCore();
+    renderShell();
+    toast("Feedback salvo.");
+  } catch (error) {
+    toast(error.message);
+  }
 }
 
 function openDiscModal(id) {
