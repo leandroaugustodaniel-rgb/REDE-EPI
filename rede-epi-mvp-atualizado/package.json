@@ -1,0 +1,17 @@
+{
+  "name": "people-epi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MVP de gestao de pessoas da REDE EPI com Netlify Functions e Supabase.",
+  "scripts": {
+    "start": "netlify dev",
+    "deploy": "netlify deploy",
+    "deploy:prod": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.36.4"
+  }
+}

@@ -1,0 +1,615 @@
+:root {
+  color-scheme: light;
+  --bg: #f3f5f4;
+  --panel: #ffffff;
+  --ink: #17212d;
+  --muted: #65717d;
+  --line: #dbe0df;
+  --brand: #063763;
+  --brand-dark: #042946;
+  --accent: #ffb72e;
+  --accent-dark: #d98d11;
+  --danger: #b42318;
+  --ok: #1f7a3f;
+  --soft: #eef4f8;
+  --shadow: 0 18px 45px rgba(6, 55, 99, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+}
+
+.login-visual {
+  background:
+    linear-gradient(180deg, rgba(5, 24, 41, 0.28), rgba(5, 24, 41, 0.88)),
+    linear-gradient(90deg, rgba(4, 32, 56, 0.94), rgba(4, 32, 56, 0.4)),
+    url("/assets/rede-epi-identidade-clean.jpg");
+  background-size: cover;
+  background-position: center top;
+  color: #fff;
+  padding: 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-visual::before {
+  content: "REDEEPI";
+  position: absolute;
+  top: -32px;
+  left: 26px;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.18);
+  font-size: clamp(5rem, 15vw, 12rem);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.login-visual::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 28%;
+  width: 96px;
+  height: 86px;
+  background:
+    linear-gradient(var(--accent), var(--accent)) 0 0 / 96px 14px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 0 34px / 96px 14px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 0 68px / 96px 14px no-repeat;
+  pointer-events: none;
+}
+
+.login-visual > * {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-logo {
+  display: block;
+  width: 132px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.32));
+}
+
+.login-logo {
+  width: min(260px, 52vw);
+  height: 72px;
+}
+
+.side-logo {
+  width: 126px;
+  height: 42px;
+}
+
+.page-logo {
+  width: 118px;
+  height: 38px;
+  flex: 0 0 auto;
+  filter: none;
+}
+
+.card-logo {
+  width: 156px;
+  height: 44px;
+  margin-bottom: 18px;
+  filter: none;
+}
+
+.login-visual h1 {
+  max-width: 620px;
+  margin: 56px 0 16px;
+  font-size: clamp(2.2rem, 6vw, 5.8rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+  color: var(--accent);
+}
+
+.login-visual p {
+  max-width: 560px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  opacity: 0.92;
+}
+
+.login-panel {
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+
+.login-card,
+.modal-card {
+  width: min(100%, 460px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+.login-card {
+  border-top: 5px solid var(--accent);
+}
+
+.login-card h2,
+.modal-card h3 {
+  margin: 0 0 8px;
+}
+
+.hint {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 268px 1fr;
+}
+
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(4, 32, 56, 0.98), rgba(5, 25, 43, 0.98)),
+    url("/assets/rede-epi-identidade-clean.jpg");
+  background-size: cover;
+  background-position: center;
+  color: #e9f4f1;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.side-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.side-head strong {
+  display: block;
+}
+
+.side-head small,
+.user-box small {
+  color: #b8c9d7;
+}
+
+.nav {
+  display: grid;
+  gap: 8px;
+}
+
+.nav button {
+  min-height: 42px;
+  border-radius: 8px;
+  color: #e9f4f1;
+  background: transparent;
+  text-align: left;
+  padding: 0 12px;
+}
+
+.nav button.active,
+.nav button:hover {
+  background: rgba(255, 183, 46, 0.18);
+  color: #fff;
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.user-box {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  padding-top: 16px;
+}
+
+.workspace {
+  min-width: 0;
+  padding: 28px;
+  position: relative;
+}
+
+.workspace::before {
+  content: "REDEEPI";
+  position: fixed;
+  right: 28px;
+  top: 18px;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(6, 55, 99, 0.06);
+  font-size: clamp(4rem, 11vw, 10rem);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+}
+
+.topbar p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  min-height: 40px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #111827;
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.btn:hover {
+  background: var(--accent-dark);
+}
+
+.btn.secondary {
+  background: #e7ece8;
+  color: var(--ink);
+}
+
+.btn.danger {
+  background: var(--danger);
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #edf1ee;
+  color: var(--ink);
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.stats {
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+}
+
+.stat,
+.panel,
+.item-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.stat {
+  padding: 18px;
+  border-top: 4px solid var(--accent);
+}
+
+.stat strong {
+  display: block;
+  font-size: 2rem;
+  margin-top: 8px;
+}
+
+.stat span,
+.meta,
+.muted {
+  color: var(--muted);
+}
+
+.content-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  margin-top: 16px;
+}
+
+.panel {
+  padding: 18px;
+  min-width: 0;
+}
+
+.panel h2 {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+}
+
+.bars {
+  display: grid;
+  gap: 12px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 36px;
+  gap: 10px;
+  align-items: center;
+}
+
+.bar-track {
+  height: 10px;
+  background: #e8ece7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--brand);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.badge.warn {
+  background: #fff3df;
+  color: #915c17;
+}
+
+.badge.danger {
+  background: #ffe7e4;
+  color: var(--danger);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.item-card {
+  padding: 16px;
+}
+
+.item-card h3 {
+  margin: 0 0 6px;
+}
+
+.profile-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.disc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.disc-box {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f3f6f3;
+}
+
+.disc-box strong {
+  display: block;
+  font-size: 1.35rem;
+}
+
+.org-tree {
+  display: grid;
+  gap: 12px;
+}
+
+.org-node {
+  border-left: 3px solid var(--accent);
+  background: var(--panel);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 12px 12px var(--indent, 12px);
+  box-shadow: 0 1px 0 var(--line);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 23, 22, 0.46);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 20;
+}
+
+.modal-card {
+  width: min(100%, 760px);
+  max-height: min(90vh, 820px);
+  overflow: auto;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 9px 10px;
+}
+
+textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  background: var(--brand-dark);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 30;
+}
+
+@media (max-width: 920px) {
+  .login-shell,
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .login-visual {
+    min-height: 42vh;
+    padding: 32px;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .nav {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .stats,
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .workspace,
+  .login-panel {
+    padding: 18px;
+  }
+
+  .topbar,
+  .profile-head {
+    display: grid;
+  }
+
+  .page-title {
+    align-items: flex-start;
+    display: grid;
+  }
+
+  .login-logo {
+    width: min(230px, 70vw);
+  }
+
+  .nav,
+  .form-grid,
+  .disc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .span-2 {
+    grid-column: span 1;
+  }
+}
